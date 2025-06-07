@@ -7,11 +7,11 @@ def scrape_product(data):
         response = requests.get(data.url, headers={"User-Agent": "Mozilla/5.0"})
         soup = BeautifulSoup(response.text, 'html.parser')
 
-        price_tag = soup.select_one(".product-price")
+        price_tag = soup.select_one(".price_color")
         if not price_tag:
-            return {"error": "No element with class .price found on the page."}
+            return {"error": "No element with class .price_color found on the page."}
 
-        price_text = price_tag.text.strip().replace("$", "")
+        price_text = price_tag.text.strip().replace("£", "")
         current_price = float(price_text)
 
         if current_price <= data.threshold:
@@ -21,3 +21,4 @@ def scrape_product(data):
 
     except Exception as e:
         return {"error": str(e)}
+

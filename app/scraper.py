@@ -9,21 +9,23 @@ def scrape_product(data):
         soup = BeautifulSoup(response.text, 'html.parser')
 
         price_tag = soup.select_one(".price_color")
-        if not price_tag or not price_tag.text:
-            return {"error": "Price element found but no text inside it."}
+        if not price_tag:
+            return {"error": "No element with class .price_color found on the page."}
 
+        raw_text = price_tag.text if price_tag.text else ""
         price_text = (
-            price_tag.text
+            raw_text
             .strip()
             .replace("£", "")
             .replace("Â", "")
             .replace(",", "")
         )
 
-        if not price_text or not price_text.replace(".", "").isdigit():
-            return {"error": f"Unable to extract valid numeric price from text: '{price_tag.text}'"}
-
-        current_price = float(price_text)
+        # Validate price_text is a number
+        try:
+            current_price = float(price_text)
+        except ValueError:
+            return {"error": f"Could not convert '{price_text}' to float."}
 
         if current_price <= data.threshold:
             send_alert(data.email, data.url, current_price)
@@ -32,5 +34,3 @@ def scrape_product(data):
 
     except Exception as e:
         return {"error": str(e)}
-
-

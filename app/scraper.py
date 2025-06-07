@@ -7,7 +7,7 @@ def scrape_product(data):
         response = requests.get(data.url, headers={"User-Agent": "Mozilla/5.0"})
         soup = BeautifulSoup(response.text, 'html.parser')
 
-        price_tag = soup.select_one(".price")
+        price_tag = soup.select_one(".product-price")
         if not price_tag:
             return {"error": "No element with class .price found on the page."}
 

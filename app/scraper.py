@@ -5,20 +5,23 @@ from app.utils.alert import send_alert
 def scrape_product(data):
     try:
         response = requests.get(data.url, headers={"User-Agent": "Mozilla/5.0"})
-        response.encoding = 'utf-8'  # Ensures proper text encoding
+        response.encoding = 'utf-8'
         soup = BeautifulSoup(response.text, 'html.parser')
 
-        price_tag = soup.select_one(".price_color")  # Change selector based on site
-        if not price_tag:
-            return {"error": "No element with class .price_color found on the page."}
+        price_tag = soup.select_one(".price_color")
+        if not price_tag or not price_tag.text:
+            return {"error": "Price element found but no text inside it."}
 
         price_text = (
             price_tag.text
             .strip()
-            .replace("£", "")     # Remove pound sign
-            .replace("Â", "")     # Remove unicode junk
-            .replace(",", "")     # Handle thousand separators if any
+            .replace("£", "")
+            .replace("Â", "")
+            .replace(",", "")
         )
+
+        if not price_text or not price_text.replace(".", "").isdigit():
+            return {"error": f"Unable to extract valid numeric price from text: '{price_tag.text}'"}
 
         current_price = float(price_text)
 

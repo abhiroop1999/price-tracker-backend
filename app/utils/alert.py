@@ -1,25 +1,16 @@
-import smtplib
-from email.message import EmailMessage
 import os
+from sendgrid import SendGridAPIClient
+from sendgrid.helpers.mail import Mail
 
 def send_alert(email, url, price):
-    # Safely fetch environment variables with defaults/fallbacks
-    EMAIL_USER = os.getenv("EMAIL_USER") or "default@example.com"
-    EMAIL_PASS = os.getenv("EMAIL_PASS") or ""
-    EMAIL_HOST = os.getenv("EMAIL_HOST") or "smtp.example.com"
-    EMAIL_PORT = int(os.getenv("EMAIL_PORT") or "587")
-
-    # Construct the email
-    msg = EmailMessage()
-    msg.set_content(f"Price dropped to ${float(price):.2f} for {url}")
-    msg["Subject"] = "Price Alert"
-    msg["From"] = EMAIL_USER
-    msg["To"] = email
-
+    message = Mail(
+        from_email=os.getenv("EMAIL_USER"),
+        to_emails=email,
+        subject="📉 Price Alert",
+        plain_text_content=f"Hey! The price dropped to ${float(price):.2f} for {url}"
+    )
     try:
-        with smtplib.SMTP(EMAIL_HOST, EMAIL_PORT) as server:
-            server.starttls()
-            server.login(EMAIL_USER, EMAIL_PASS)
-            server.send_message(msg)
+        sg = SendGridAPIClient(os.getenv("SENDGRID_API_KEY"))
+        sg.send(message)
     except Exception as e:
-        raise Exception(f"Failed to send email: {e}")
+        raise Exception(f"Failed to send email via SendGrid: {e}")
